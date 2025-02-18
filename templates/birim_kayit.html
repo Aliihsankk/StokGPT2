@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StokGPT - Birim Kayıt</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        .navbar { background-color: #6f42c1; }
+        .navbar-brand, .nav-link { color: white !important; }
+        .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .btn-primary { background-color: #6f42c1; border-color: #6f42c1; }
+        .btn-primary:hover { background-color: #5a32a3; border-color: #5a32a3; }
+        .table { border-radius: 15px; overflow: hidden; }
+        .table thead { background-color: #6f42c1; color: white; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/">StokGPT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Ana Sayfa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/birim_kayit">Birim Kayıt</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Birim Kayıt</h5>
+                        <form id="birimForm">
+                            <input type="hidden" id="birimId">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="birimAdi" class="form-label">Birim Adı</label>
+                                    <input type="text" class="form-control" id="birimAdi" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="aciklama" class="form-label">Açıklama</label>
+                                    <input type="text" class="form-control" id="aciklama">
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-secondary" onclick="formTemizle()">Temizle</button>
+                                <button type="submit" class="btn btn-primary">Kaydet</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title">Birim Listesi</h5>
+                            <button class="btn btn-primary btn-sm" onclick="birimListesiYenile()">
+                                <i class="fas fa-sync-alt"></i> Yenile
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="birimTable" class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Birim Adı</th>
+                                        <th>Açıklama</th>
+                                        <th>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+
+    <script>
+        let birimTable;
+        
+        $(document).ready(function() {
+            birimTable = $('#birimTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json'
+                },
+                columns: [
+                    { data: 'id' },
+                    { data: 'birim_adi' },
+                    { data: 'aciklama' },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            return `
+                                <button class="btn btn-warning btn-sm" onclick="birimDuzenle(${row.id}, '${row.birim_adi}', '${row.aciklama}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="birimSil(${row.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            `;
+                        }
+                    }
+                ]
+            });
+
+            birimListesiYenile();
+
+            $('#birimForm').on('submit', function(e) {
+                e.preventDefault();
+                birimKaydet();
+            });
+        });
+
+        function birimListesiYenile() {
+            fetch('/birimler_listele')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        birimTable.clear().rows.add(data.birimler).draw();
+                    } else {
+                        Swal.fire('Hata', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Hata', 'Birim listesi alınamadı.', 'error');
+                });
+        }
+
+        function birimKaydet() {
+            const birimId = $('#birimId').val();
+            const birimAdi = $('#birimAdi').val();
+            const aciklama = $('#aciklama').val();
+
+            if (!birimAdi) {
+                Swal.fire('Uyarı', 'Birim adı boş olamaz!', 'warning');
+                return;
+            }
+
+            const url = birimId ? `/birim_duzenle/${birimId}` : '/birim_kayit';
+            const formData = new FormData();
+            formData.append('birim_adi', birimAdi);
+            formData.append('aciklama', aciklama);
+
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('Başarılı', birimId ? 'Birim güncellendi.' : 'Birim kaydedildi.', 'success');
+                    formTemizle();
+                    birimListesiYenile();
+                } else {
+                    Swal.fire('Hata', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Hata', 'İşlem başarısız.', 'error');
+            });
+        }
+
+        function birimDuzenle(id, birimAdi, aciklama) {
+            $('#birimId').val(id);
+            $('#birimAdi').val(birimAdi);
+            $('#aciklama').val(aciklama);
+        }
+
+        function birimSil(id) {
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu birim silinecek!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, sil!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/birim_sil/${id}`, { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('Silindi!', 'Birim başarıyla silindi.', 'success');
+                                birimListesiYenile();
+                            } else {
+                                Swal.fire('Hata', data.message, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire('Hata', 'Silme işlemi başarısız.', 'error');
+                        });
+                }
+            });
+        }
+
+        function formTemizle() {
+            $('#birimId').val('');
+            $('#birimAdi').val('');
+            $('#aciklama').val('');
+        }
+    </script>
+</body>
+</html> 

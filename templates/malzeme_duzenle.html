@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malzeme Düzenle</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Malzeme Düzenle</h2>
+        <form method="POST">
+            <div class="form-group">
+                <label for="malzeme_adi">Malzeme Adı</label>
+                <input type="text" class="form-control" id="malzeme_adi" name="malzeme_adi" value="{{ malzeme['malzeme_adi'] }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Güncelle</button>
+        </form>
+    </div>
+</body>
+</html> 
