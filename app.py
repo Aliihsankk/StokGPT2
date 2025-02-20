@@ -294,30 +294,32 @@ def kullanici_kayit():
 @app.route('/malzeme_ekle', methods=['POST'])
 def malzeme_ekle():
     try:
+        stok_kodu = request.form.get('stok_kodu')
         malzeme_adi = request.form.get('malzeme_adi')
-        miktar = request.form.get('miktar', 0)  # Varsayılan değer 0
-        birim = request.form.get('birim', '')   # Varsayılan değer boş string
-        aciklama = request.form.get('aciklama', '')
+        aciklama = request.form.get('aciklama')
         
-        if not malzeme_adi:
-            return jsonify(success=False, message="Malzeme adı boş olamaz"), 400
-            
+        if not stok_kodu or not malzeme_adi:
+            return jsonify({'success': False, 'message': 'Stok kodu ve malzeme adı zorunludur!'})
+        
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        cursor.execute(
-            "INSERT INTO Malzemeler (malzeme_adi, miktar, birim, aciklama) VALUES (?, ?, ?, ?)",
-            (malzeme_adi, miktar, birim, aciklama)
-        )
+        # Stok kodu benzersiz olmalı
+        cursor.execute('SELECT id FROM Malzemeler WHERE stok_kodu = ?', (stok_kodu,))
+        if cursor.fetchone():
+            return jsonify({'success': False, 'message': 'Bu stok kodu zaten kullanımda!'})
+        
+        cursor.execute('''
+            INSERT INTO Malzemeler (stok_kodu, malzeme_adi, aciklama, kullanici_id)
+            VALUES (?, ?, ?, ?)
+        ''', (stok_kodu, malzeme_adi, aciklama, 1))  # kullanici_id şimdilik sabit 1
         
         conn.commit()
-        new_id = cursor.lastrowid
-        conn.close()
-        
-        return jsonify(success=True, id=new_id)
+        return jsonify({'success': True, 'message': 'Malzeme başarıyla eklendi.'})
     except Exception as e:
-        print(f"Hata: {e}")
-        return jsonify(success=False, message=str(e)), 500
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        conn.close()
 
 @app.route('/malzeme_sil/<int:id>', methods=['POST'])
 def malzeme_sil(id):
@@ -332,26 +334,34 @@ def malzeme_sil(id):
 
 @app.route('/malzeme_duzenle/<int:id>', methods=['POST'])
 def malzeme_duzenle(id):
-    stok_kodu = request.form.get('stok_kodu')
-    malzeme_adi = request.form.get('malzeme_adi')
-    aciklama = request.form.get('aciklama')
-    
-    if not stok_kodu or not malzeme_adi:
-        return jsonify(success=False, message="Stok kodu ve malzeme adı zorunludur."), 400
-    
     try:
+        stok_kodu = request.form.get('stok_kodu')
+        malzeme_adi = request.form.get('malzeme_adi')
+        aciklama = request.form.get('aciklama')
+        
+        if not stok_kodu or not malzeme_adi:
+            return jsonify({'success': False, 'message': 'Stok kodu ve malzeme adı zorunludur!'})
+        
         conn = get_db_connection()
-        conn.execute(
-            "UPDATE Malzemeler SET stok_kodu = ?, malzeme_adi = ?, aciklama = ? WHERE id = ?",
-            (stok_kodu, malzeme_adi, aciklama, id)
-        )
+        cursor = conn.cursor()
+        
+        # Stok kodu benzersizlik kontrolü (kendi ID'si hariç)
+        cursor.execute('SELECT id FROM Malzemeler WHERE stok_kodu = ? AND id != ?', (stok_kodu, id))
+        if cursor.fetchone():
+            return jsonify({'success': False, 'message': 'Bu stok kodu başka bir malzeme için kullanımda!'})
+        
+        cursor.execute('''
+            UPDATE Malzemeler 
+            SET stok_kodu = ?, malzeme_adi = ?, aciklama = ?
+            WHERE id = ?
+        ''', (stok_kodu, malzeme_adi, aciklama, id))
+        
         conn.commit()
-        conn.close()
-        return jsonify(success=True)
-    except sqlite3.IntegrityError as e:
-        return jsonify(success=False, message="Bu stok kodu zaten kullanılıyor."), 400
+        return jsonify({'success': True, 'message': 'Malzeme başarıyla güncellendi.'})
     except Exception as e:
-        return jsonify(success=False, message=str(e)), 500
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        conn.close()
 
 @app.route('/stok_ekrani')
 def stok_ekrani():
@@ -421,20 +431,23 @@ def malzemeler_listele():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("""
-            SELECT m.*, s.birim_adi 
-            FROM Malzemeler m 
-            LEFT JOIN Stok s ON m.stok_kodu = s.stok_kodu 
-            ORDER BY m.malzeme_adi
-        """)
-        columns = [column[0] for column in cursor.description]
+        cursor.execute('''
+            SELECT id, stok_kodu, malzeme_adi, aciklama, tarih
+            FROM Malzemeler
+            ORDER BY id DESC
+        ''')
         malzemeler = []
         for row in cursor.fetchall():
-            malzeme = dict(zip(columns, row))
-            malzemeler.append(malzeme)
-        return jsonify({"success": True, "malzemeler": malzemeler})
+            malzemeler.append({
+                'id': row[0],
+                'stok_kodu': row[1],
+                'malzeme_adi': row[2],
+                'aciklama': row[3],
+                'tarih': row[4]
+            })
+        return jsonify({'success': True, 'malzemeler': malzemeler})
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
+        return jsonify({'success': False, 'message': str(e)})
     finally:
         conn.close()
 
@@ -717,80 +730,183 @@ def stok_cikis_sil(id):
 def birim_kayit():
     if request.method == 'GET':
         return render_template('birim_kayit.html')
-    
-    elif request.method == 'POST':
+        
+    try:
         birim_adi = request.form.get('birim_adi')
         aciklama = request.form.get('aciklama')
-        
+
         if not birim_adi:
-            return jsonify(success=False, message="Birim adı boş olamaz."), 400
+            return jsonify({'success': False, 'message': 'Birim adı zorunludur!'})
+
+        # Aynı birim adı var mı kontrol et
+        cursor = get_db_connection().cursor()
+        cursor.execute('SELECT id FROM Birim WHERE birim_adi = ?', (birim_adi,))
+        existing = cursor.fetchone()
         
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            cursor.execute(
-                "INSERT INTO Birim (birim_adi, aciklama) VALUES (?, ?)",
-                (birim_adi, aciklama)
-            )
-            
-            conn.commit()
-            new_id = cursor.lastrowid
-            conn.close()
-            
-            return jsonify(success=True, id=new_id)
-            
-        except Exception as e:
-            print("Database Error:", str(e))
-            return jsonify(success=False, message=str(e)), 500
+        if existing:
+            return jsonify({'success': False, 'message': 'Bu birim adı zaten kayıtlı!'})
 
-@app.route('/birim_duzenle/<int:id>', methods=['POST'])
-def birim_duzenle(id):
-    birim_adi = request.form.get('birim_adi')
-    aciklama = request.form.get('aciklama')
-    
-    if not birim_adi:
-        return jsonify(success=False, message="Birim adı boş olamaz."), 400
-    
-    try:
-        conn = get_db_connection()
-        conn.execute(
-            "UPDATE Birim SET birim_adi = ?, aciklama = ? WHERE id = ?",
-            (birim_adi, aciklama, id)
-        )
-        conn.commit()
-        conn.close()
-        return jsonify(success=True)
-    except Exception as e:
-        return jsonify(success=False, message=str(e)), 500
+        # Yeni birimi kaydet
+        cursor.execute('''
+            INSERT INTO Birim (birim_adi, aciklama)
+            VALUES (?, ?)
+        ''', (birim_adi, aciklama))
+        
+        get_db_connection().commit()
+        return jsonify({'success': True, 'message': 'Birim başarıyla kaydedildi.'})
 
-@app.route('/birim_sil/<int:id>', methods=['POST'])
-def birim_sil(id):
-    try:
-        conn = get_db_connection()
-        conn.execute("DELETE FROM Birim WHERE id = ?", (id,))
-        conn.commit()
-        conn.close()
-        return jsonify(success=True)
     except Exception as e:
-        return jsonify(success=False, message=str(e)), 500
+        return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/birimler_listele')
 def birimler_listele():
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM Birim ORDER BY birim_adi')
+        cursor = get_db_connection().cursor()
+        cursor.execute('''
+            SELECT id, birim_adi, aciklama
+            FROM Birim
+            ORDER BY id DESC
+        ''')
         
-        columns = [column[0] for column in cursor.description]
         birimler = []
         for row in cursor.fetchall():
-            birim = dict(zip(columns, row))
-            birimler.append(birim)
+            birimler.append({
+                'id': row[0],
+                'birim_adi': row[1],
+                'aciklama': row[2]
+            })
             
-        return jsonify({"success": True, "birimler": birimler})
+        return jsonify({'success': True, 'birimler': birimler})
+
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/birim_duzenle/<int:id>', methods=['POST'])
+def birim_duzenle(id):
+    try:
+        birim_adi = request.form.get('birim_adi')
+        aciklama = request.form.get('aciklama')
+
+        if not birim_adi:
+            return jsonify({'success': False, 'message': 'Birim adı zorunludur!'})
+
+        # Aynı birim adı başka kayıtta var mı kontrol et
+        cursor = get_db_connection().cursor()
+        cursor.execute('SELECT id FROM Birim WHERE birim_adi = ? AND id != ?', (birim_adi, id))
+        existing = cursor.fetchone()
+        
+        if existing:
+            return jsonify({'success': False, 'message': 'Bu birim adı zaten kayıtlı!'})
+
+        # Birimi güncelle
+        cursor.execute('''
+            UPDATE Birim 
+            SET birim_adi = ?, 
+                aciklama = ?
+            WHERE id = ?
+        ''', (birim_adi, aciklama, id))
+        
+        get_db_connection().commit()
+        return jsonify({'success': True, 'message': 'Birim başarıyla güncellendi.'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/birim_sil/<int:id>', methods=['POST'])
+def birim_sil(id):
+    try:
+        # Birim kullanımda mı kontrol et
+        cursor = get_db_connection().cursor()
+        cursor.execute('SELECT id FROM StokGiris WHERE birim_id = ? LIMIT 1', (id,))
+        if cursor.fetchone():
+            return jsonify({'success': False, 'message': 'Bu birim stok giriş kayıtlarında kullanılmış. Silinemez!'})
+            
+        cursor.execute('SELECT id FROM StokCikis WHERE birim_id = ? LIMIT 1', (id,))
+        if cursor.fetchone():
+            return jsonify({'success': False, 'message': 'Bu birim stok çıkış kayıtlarında kullanılmış. Silinemez!'})
+
+        # Birimi sil
+        cursor.execute('DELETE FROM Birim WHERE id = ?', (id,))
+        get_db_connection().commit()
+        
+        return jsonify({'success': True, 'message': 'Birim başarıyla silindi.'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/son_giris_detay/<stok_kodu>')
+def son_giris_detay(stok_kodu):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                sg.islem_tarihi,
+                sg.miktar,
+                sg.birim_adi,
+                sg.gelis_nedeni,
+                sg.firma_isyeri_adi,
+                sg.aciklama
+            FROM StokGiris sg
+            WHERE sg.stok_kodu = ?
+            ORDER BY sg.islem_tarihi DESC
+            LIMIT 1
+        """, (stok_kodu,))
+        detay = cursor.fetchone()
+        
+        if detay:
+            return jsonify({
+                'success': True,
+                'detay': {
+                    'islem_tarihi': detay[0],
+                    'miktar': detay[1],
+                    'birim_adi': detay[2],
+                    'gelis_nedeni': detay[3],
+                    'firma_isyeri_adi': detay[4],
+                    'aciklama': detay[5]
+                }
+            })
+        return jsonify({'success': False, 'message': 'Detay bulunamadı'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        conn.close()
+
+@app.route('/son_cikis_detay/<stok_kodu>')
+def son_cikis_detay(stok_kodu):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                sc.islem_tarihi,
+                sc.miktar,
+                sc.birim_adi,
+                sc.cikis_nedeni,
+                sc.firma_isyeri_adi,
+                sc.aciklama
+            FROM StokCikis sc
+            WHERE sc.stok_kodu = ?
+            ORDER BY sc.islem_tarihi DESC
+            LIMIT 1
+        """, (stok_kodu,))
+        detay = cursor.fetchone()
+        
+        if detay:
+            return jsonify({
+                'success': True,
+                'detay': {
+                    'islem_tarihi': detay[0],
+                    'miktar': detay[1],
+                    'birim_adi': detay[2],
+                    'cikis_nedeni': detay[3],
+                    'firma_isyeri_adi': detay[4],
+                    'aciklama': detay[5]
+                }
+            })
+        return jsonify({'success': False, 'message': 'Detay bulunamadı'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
     finally:
         conn.close()
 

@@ -16,9 +16,11 @@ lib64/
 parts/
 sdist/
 var/
+wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual Environment
 venv/
@@ -42,4 +44,8 @@ ENV/
 
 # System Files
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Backup Environment
+env.bak/
+venv.bak/ 
