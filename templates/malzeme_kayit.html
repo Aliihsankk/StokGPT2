@@ -178,23 +178,23 @@
         <div class="row mb-4">
             <div class="col-md-4">
                 <div class="stats-card">
-                    <i class="fas fa-box-open stats-icon"></i>
+                    <i class="fas fa-boxes-stacked stats-icon"></i>
                     <div class="stats-title">Toplam Malzeme Sayısı</div>
                     <div class="stats-value" id="totalItems">0</div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="stats-card">
-                    <i class="fas fa-exclamation-triangle stats-icon text-warning"></i>
-                    <div class="stats-title">Kritik Stok Sayısı</div>
-                    <div class="stats-value" id="criticalItems">0</div>
+                    <i class="fas fa-clock stats-icon text-info"></i>
+                    <div class="stats-title">Son Kayıt Tarihi</div>
+                    <div class="stats-value" style="font-size: 1.2rem;" id="lastUpdate">-</div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="stats-card">
-                    <i class="fas fa-clock stats-icon text-info"></i>
-                    <div class="stats-title">Son Güncelleme</div>
-                    <div class="stats-value" style="font-size: 1.2rem;" id="lastUpdate">-</div>
+                    <i class="fas fa-user stats-icon text-success"></i>
+                    <div class="stats-title">Aktif Kullanıcı</div>
+                    <div class="stats-value" style="font-size: 1.2rem;" id="activeUser">-</div>
                 </div>
             </div>
         </div>
@@ -202,45 +202,28 @@
         <div class="card">
             <div class="card-header">
                 <h4 class="mb-0">
-                    <i class="fas fa-box-open me-2"></i>Malzeme Kayıt
+                    <i class="fas fa-box me-2"></i>Malzeme Kayıt
                 </h4>
             </div>
             <div class="card-body">
                 <form id="malzemeForm">
                     <div class="row g-3">
                         <div class="col-md-4">
+                            <label for="stokKodu" class="form-label">Stok Kodu</label>
+                            <input type="text" class="form-control" id="stokKodu" name="stok_kodu" required>
+                        </div>
+                        <div class="col-md-4">
                             <label for="malzemeAdi" class="form-label">Malzeme Adı</label>
                             <input type="text" class="form-control" id="malzemeAdi" name="malzeme_adi" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="birim" class="form-label">Birim</label>
-                            <select class="form-select" id="birim" name="birim" required>
-                                <option value="">Seçiniz</option>
-                                <option value="adet">Adet</option>
-                                <option value="kg">Kilogram</option>
-                                <option value="lt">Litre</option>
-                                <option value="mt">Metre</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="minStok" class="form-label">Minimum Stok</label>
-                            <input type="number" class="form-control" id="minStok" name="min_stok" required min="0">
                         </div>
                         <div class="col-md-4">
                             <label for="aciklama" class="form-label">Açıklama</label>
                             <input type="text" class="form-control" id="aciklama" name="aciklama">
                         </div>
-                        <div class="col-md-4">
-                            <label for="kategori" class="form-label">Kategori</label>
-                            <select class="form-select" id="kategori" name="kategori">
-                                <option value="">Seçiniz</option>
-                                <option value="hammadde">Hammadde</option>
-                                <option value="yardimci">Yardımcı Malzeme</option>
-                                <option value="ambalaj">Ambalaj</option>
-                                <option value="diger">Diğer</option>
-                            </select>
-                        </div>
                         <div class="col-12 text-end">
+                            <button type="button" class="btn btn-secondary" onclick="formTemizle()">
+                                <i class="fas fa-eraser me-2"></i>Temizle
+                            </button>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Kaydet
                             </button>
@@ -267,13 +250,10 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>Stok Kodu</th>
                                 <th>Malzeme Adı</th>
-                                <th>Birim</th>
-                                <th>Minimum Stok</th>
-                                <th>Mevcut Stok</th>
-                                <th>Kategori</th>
                                 <th>Açıklama</th>
-                                <th>Durum</th>
+                                <th>Kayıt Tarihi</th>
                                 <th>İşlemler</th>
                             </tr>
                         </thead>
@@ -308,27 +288,23 @@
             // Form gönderimi
             $('#malzemeForm').on('submit', function(e) {
                 e.preventDefault();
+                var stokKodu = $('#stokKodu').val().trim();
                 var malzemeAdi = $('#malzemeAdi').val().trim();
-                var birim = $('#birim').val();
-                var minStok = $('#minStok').val();
                 var aciklama = $('#aciklama').val().trim();
-                var kategori = $('#kategori').val();
                 
-                if (!malzemeAdi || !birim || !minStok) {
+                if (!stokKodu || !malzemeAdi) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Hata!',
-                        text: 'Lütfen zorunlu alanları doldurunuz!'
+                        text: 'Stok kodu ve malzeme adı zorunludur!'
                     });
                     return;
                 }
 
-                $.post('/malzeme_kayit', {
+                $.post('/malzeme_ekle', {
+                    stok_kodu: stokKodu,
                     malzeme_adi: malzemeAdi,
-                    birim: birim,
-                    min_stok: minStok,
-                    aciklama: aciklama,
-                    kategori: kategori
+                    aciklama: aciklama
                 }, function(response) {
                     if (response.success) {
                         Swal.fire({
@@ -338,7 +314,7 @@
                             timer: 1500,
                             showConfirmButton: false
                         }).then(() => {
-                            $('#malzemeForm')[0].reset();
+                            formTemizle();
                             kayitlariGetir();
                         });
                     } else {
@@ -362,49 +338,14 @@
                     var tbody = $('table tbody');
                     tbody.empty();
                     
-                    let criticalCount = 0;
-                    
                     response.malzemeler.forEach(function(malzeme) {
-                        let stokDurumu = 'Yeterli';
-                        let stokClass = 'bg-success';
-                        
-                        if (malzeme.mevcut_stok <= malzeme.min_stok) {
-                            stokDurumu = 'Kritik';
-                            stokClass = 'bg-danger';
-                            criticalCount++;
-                        } else if (malzeme.mevcut_stok <= malzeme.min_stok * 1.2) {
-                            stokDurumu = 'Uyarı';
-                            stokClass = 'bg-warning text-dark';
-                        }
-                        
                         var row = `
                             <tr data-id="${malzeme.id}">
                                 <td>${malzeme.id}</td>
-                                <td class="editable-cell" contenteditable="true">${malzeme.malzeme_adi || ''}</td>
-                                <td>
-                                    <select class="form-select form-select-sm" onchange="birimDegistir(this)">
-                                        <option value="adet" ${malzeme.birim === 'adet' ? 'selected' : ''}>Adet</option>
-                                        <option value="kg" ${malzeme.birim === 'kg' ? 'selected' : ''}>Kilogram</option>
-                                        <option value="lt" ${malzeme.birim === 'lt' ? 'selected' : ''}>Litre</option>
-                                        <option value="mt" ${malzeme.birim === 'mt' ? 'selected' : ''}>Metre</option>
-                                    </select>
-                                </td>
-                                <td class="editable-cell" contenteditable="true">${malzeme.min_stok || 0}</td>
-                                <td>${malzeme.mevcut_stok || 0}</td>
-                                <td>
-                                    <select class="form-select form-select-sm" onchange="kategoriDegistir(this)">
-                                        <option value="hammadde" ${malzeme.kategori === 'hammadde' ? 'selected' : ''}>Hammadde</option>
-                                        <option value="yardimci" ${malzeme.kategori === 'yardimci' ? 'selected' : ''}>Yardımcı Malzeme</option>
-                                        <option value="ambalaj" ${malzeme.kategori === 'ambalaj' ? 'selected' : ''}>Ambalaj</option>
-                                        <option value="diger" ${malzeme.kategori === 'diger' ? 'selected' : ''}>Diğer</option>
-                                    </select>
-                                </td>
-                                <td class="editable-cell" contenteditable="true">${malzeme.aciklama || ''}</td>
-                                <td>
-                                    <span class="badge ${stokClass}">
-                                        ${stokDurumu}
-                                    </span>
-                                </td>
+                                <td>${malzeme.stok_kodu}</td>
+                                <td>${malzeme.malzeme_adi}</td>
+                                <td>${malzeme.aciklama || ''}</td>
+                                <td>${malzeme.tarih || '-'}</td>
                                 <td>
                                     <button class="btn btn-warning btn-sm" onclick="malzemeDuzenle(this)">
                                         <i class="fas fa-edit me-1"></i>Düzenle
@@ -420,15 +361,16 @@
 
                     // İstatistikleri güncelle
                     $('#totalItems').text(response.malzemeler.length);
-                    $('#criticalItems').text(criticalCount);
-                    $('#lastUpdate').text(new Date().toLocaleTimeString());
+                    $('#lastUpdate').text(response.malzemeler.length > 0 ? 
+                        response.malzemeler[response.malzemeler.length - 1].tarih : '-');
+                    $('#activeUser').text(response.aktif_kullanici || '-');
 
                     // DataTable'ı başlat
                     dataTable = $('#malzemeTable').DataTable({
                         language: {
                             url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json'
                         },
-                        order: [[1, 'asc']],
+                        order: [[0, 'desc']],
                         pageLength: 25,
                         dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip'
                     });
@@ -446,44 +388,58 @@
         function malzemeDuzenle(btn) {
             var row = $(btn).closest('tr');
             var id = row.data('id');
-            var malzemeAdi = row.find('td:eq(1)').text().trim();
-            var birim = row.find('select:eq(0)').val();
-            var minStok = row.find('td:eq(3)').text().trim();
-            var kategori = row.find('select:eq(1)').val();
-            var aciklama = row.find('td:eq(6)').text().trim();
+            var stokKodu = row.find('td:eq(1)').text();
+            var malzemeAdi = row.find('td:eq(2)').text();
+            var aciklama = row.find('td:eq(3)').text();
 
-            if (!malzemeAdi || !birim || !minStok) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Hata!',
-                    text: 'Lütfen zorunlu alanları doldurunuz!'
-                });
-                return;
-            }
+            Swal.fire({
+                title: 'Malzeme Düzenle',
+                html: `
+                    <div class="mb-3">
+                        <label class="form-label">Stok Kodu</label>
+                        <input type="text" class="form-control" id="editStokKodu" value="${stokKodu}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Malzeme Adı</label>
+                        <input type="text" class="form-control" id="editMalzemeAdi" value="${malzemeAdi}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Açıklama</label>
+                        <input type="text" class="form-control" id="editAciklama" value="${aciklama}">
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Kaydet',
+                cancelButtonText: 'İptal',
+                preConfirm: () => {
+                    return {
+                        stok_kodu: $('#editStokKodu').val().trim(),
+                        malzeme_adi: $('#editMalzemeAdi').val().trim(),
+                        aciklama: $('#editAciklama').val().trim()
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const data = result.value;
+                    if (!data.stok_kodu || !data.malzeme_adi) {
+                        Swal.fire('Hata', 'Stok kodu ve malzeme adı zorunludur!', 'error');
+                        return;
+                    }
 
-            $.post('/malzeme_duzenle/' + id, {
-                malzeme_adi: malzemeAdi,
-                birim: birim,
-                min_stok: minStok,
-                kategori: kategori,
-                aciklama: aciklama
-            }, function(response) {
-                if (response.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Başarılı!',
-                        text: 'Malzeme bilgileri güncellendi.',
-                        timer: 1500,
-                        showConfirmButton: false
+                    $.post('/malzeme_duzenle/' + id, data, function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Başarılı!',
+                                text: 'Malzeme güncellendi.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            kayitlariGetir();
+                        } else {
+                            Swal.fire('Hata', response.message || 'Güncelleme başarısız!', 'error');
+                        }
                     });
-                    kayitlariGetir();
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Hata!',
-                        text: response.message || 'Güncelleme başarısız!'
-                    });
-                    kayitlariGetir();
                 }
             });
         }
@@ -494,7 +450,7 @@
 
             Swal.fire({
                 title: 'Emin misiniz?',
-                text: "Bu malzemeyi silmek istediğinizden emin misiniz?",
+                text: "Bu malzeme kaydını silmek istediğinizden emin misiniz?",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
@@ -525,14 +481,8 @@
             });
         }
 
-        function birimDegistir(select) {
-            var row = $(select).closest('tr');
-            malzemeDuzenle(row.find('.btn-warning')[0]);
-        }
-
-        function kategoriDegistir(select) {
-            var row = $(select).closest('tr');
-            malzemeDuzenle(row.find('.btn-warning')[0]);
+        function formTemizle() {
+            $('#malzemeForm')[0].reset();
         }
     </script>
 </body>

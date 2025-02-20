@@ -314,7 +314,8 @@
                                 <td>${durum}</td>
                                 <td>${stok.son_islem_tarihi || '-'}</td>
                                 <td>
-                                    <span class="badge ${stok.son_islem_tipi === 'Giriş' ? 'bg-success' : stok.son_islem_tipi === 'Çıkış' ? 'bg-danger' : 'bg-secondary'}">
+                                    <span class="badge ${stok.son_islem_tipi === 'Giriş' ? 'bg-success' : stok.son_islem_tipi === 'Çıkış' ? 'bg-danger' : 'bg-secondary'} cursor-pointer" 
+                                        onclick="islemDetayGoster('${stok.stok_kodu}', '${stok.son_islem_tipi}')">
                                         ${stok.son_islem_tipi || '-'}
                                     </span>
                                 </td>
@@ -372,6 +373,59 @@
                         text: response.message || 'Güncelleme başarısız!'
                     });
                     stoklariGetir();
+                }
+            });
+        }
+
+        function islemDetayGoster(stokKodu, islemTipi) {
+            if (islemTipi === '-') return;
+            
+            const endpoint = islemTipi === 'Giriş' ? '/son_giris_detay/' : '/son_cikis_detay/';
+            
+            $.get(endpoint + stokKodu, function(response) {
+                if (response.success) {
+                    const detay = response.detay;
+                    let detayHTML = `
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>İşlem Tarihi:</th>
+                                    <td>${detay.islem_tarihi}</td>
+                                </tr>
+                                <tr>
+                                    <th>Miktar:</th>
+                                    <td>${detay.miktar} ${detay.birim_adi}</td>
+                                </tr>
+                                <tr>
+                                    <th>${islemTipi === 'Giriş' ? 'Geliş Nedeni:' : 'Çıkış Nedeni:'}</th>
+                                    <td>${islemTipi === 'Giriş' ? detay.gelis_nedeni : detay.cikis_nedeni || '-'}</td>
+                                </tr>
+                                <tr>
+                                    <th>Firma/İşyeri:</th>
+                                    <td>${detay.firma_isyeri_adi || '-'}</td>
+                                </tr>
+                                <tr>
+                                    <th>Açıklama:</th>
+                                    <td>${detay.aciklama || '-'}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    `;
+
+                    Swal.fire({
+                        title: `Son ${islemTipi} Detayı`,
+                        html: detayHTML,
+                        confirmButtonText: 'Kapat',
+                        customClass: {
+                            container: 'my-swal'
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Hata!',
+                        text: response.message || 'Detaylar alınamadı!'
+                    });
                 }
             });
         }
