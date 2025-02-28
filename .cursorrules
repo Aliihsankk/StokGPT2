@@ -1,0 +1,197 @@
+-Bana chatden cevap verirken Türkçe kullan.
+-Yazdığın cevaplar kısa olsun. Tek tek kodları açıklama.
+-Tasarımları yaparken güncel modern UIUX kütüphanelerini kullan ve modern tasarım yap
+-Kullanıcının geçmiş hatalarını ve çözümlerini saklamak için knowledge-base.md dosyasını kullan.
+-Bir hata tesbit ettiğinde önce knowledge-base.md dosyasına bak.
+-Eğer hata için bir kayıt varsa, doğrudan önerilen çözümü kullan.
+-Eğer hata yeni bir hata ise , çözüme ullaştığında bunu knowledge-base.md  dosyasına kaydet.
+-Kayıt formatı şu şekilde olmalı:
+  Çözüm:[Çözüm açıklaması]
+
+-Kullanıcı aynı hatayı tekrar sorarsa, önce bu dosyayı kontrol et ve eğer çözüm varsa doğrudan yanıt ver.
+-Eğer dosyada kayıtlı değil ise , en iyi çözümü üret ve yeni bir kayıt oluştr.
+
+Python, Flask ve ölçeklenebilir API geliştirme konusunda uzmansınız.
+
+Temel İlkeler
+- Doğru Python örnekleriyle özlü, teknik yanıtlar yazın.
+- İşlevsel, bildirimsel programlama kullanın; Flask görünümleri dışında mümkün olduğunca sınıflardan kaçının.
+- Kod çoğaltmaktansa yineleme ve modülerleştirmeyi tercih edin.
+- Yardımcı fiillerle açıklayıcı değişken adları kullanın (örn. is_active, has_permission).
+- Dizinler ve dosyalar için alt çizgilerle küçük harf kullanın (örn. blueprints/user_routes.py).
+- Rotalar ve yardımcı işlevler için adlandırılmış dışa aktarmaları tercih edin.
+- Uygun olan yerlerde Nesne Al, Nesne Döndür (RORO) modelini kullanın.
+
+Python/Flask
+- İşlev tanımları için def kullanın.
+- Mümkün olan yerlerde tüm işlev imzaları için tür ipuçları kullanın.
+- Dosya yapısı: Flask uygulama başlatma, planlar, modeller, yardımcı programlar, yapılandırma. - Koşullu ifadelerde gereksiz süslü parantezlerden kaçının.
+- Koşullu ifadelerdeki tek satırlık ifadeler için süslü parantezleri atlayın.
+- Basit koşullu ifadeler için özlü, tek satırlık sözdizimi kullanın (örneğin, if koşulu: do_something()).
+
+Hata İşleme ve Doğrulama
+- Hata işleme ve uç durumları önceliklendirin:
+- Hataları ve uç durumları işlevlerin başında işleyin.
+- Derin iç içe if ifadelerinden kaçınmak için hata koşulları için erken dönüşler kullanın.
+- İyileştirilmiş okunabilirlik için mutlu yolu işlevde sona yerleştirin.
+- Gereksiz else ifadelerinden kaçının; bunun yerine if-return desenini kullanın.
+- Ön koşulları ve geçersiz durumları erken işlemek için koruma ifadeleri kullanın.
+- Uygun hata günlüğü tutma ve kullanıcı dostu hata mesajları uygulayın.
+- Tutarlı hata işleme için özel hata türleri veya hata fabrikaları kullanın.
+
+Bağımlılıklar
+- Flask
+- Flask-RESTful (RESTful API geliştirme için)
+- Flask-SQLAlchemy (ORM için)
+- Flask-Migrate (veritabanı geçişleri için)
+- Marshmallow (serileştirme/serileştirmeyi kaldırma için)
+- Flask-JWT-Extended (JWT kimlik doğrulaması için)
+
+Flask'a Özel Yönergeler
+- Daha iyi modülerlik ve test için Flask uygulama fabrikalarını kullanın.
+- Daha iyi kod organizasyonu için rotaları Flask Blueprints kullanarak düzenleyin.
+- Sınıf tabanlı görünümlerle RESTful API'leri oluşturmak için Flask-RESTful'u kullanın.
+- Farklı istisna türleri için özel hata işleyicileri uygulayın.
+- İstek yaşam döngüsü yönetimi için Flask'ın before_request, after_request ve teardown_request dekoratörlerini kullanın.
+- Yaygın işlevler için Flask uzantılarını kullanın (örneğin, Flask-SQLAlchemy, Flask-Migrate). - Farklı yapılandırmaları (geliştirme, test etme, üretim) yönetmek için Flask'ın yapılandırma nesnesini kullanın.
+- Flask'ın app.logger'ını kullanarak uygun günlük kaydı uygulayın.
+- Kimlik doğrulama ve yetkilendirmeyi işlemek için Flask-JWT-Extended'ı kullanın.
+
+Performans Optimizasyonu
+- Sık erişilen verileri önbelleğe almak için Flask-Caching'i kullanın.
+- Veritabanı sorgu optimizasyon tekniklerini uygulayın (örneğin, istekli yükleme, dizinleme).
+- Veritabanı bağlantıları için bağlantı havuzunu kullanın.
+- Uygun veritabanı oturum yönetimini uygulayın.
+- Zaman alıcı işlemler için arka plan görevlerini kullanın (örneğin, Flask ile Celery).
+
+Temel Sözleşmeler
+1. Flask'ın uygulama bağlamını ve istek bağlamını uygun şekilde kullanın.
+2. API performans ölçümlerine (yanıt süresi, gecikme, verim) öncelik verin.
+3. Uygulamayı yapılandırın:
+- Uygulamayı modülerleştirmek için planları kullanın.
+- Endişelerin (rotalar, iş mantığı, veri erişimi) net bir şekilde ayrılmasını uygulayın.
+- Yapılandırma yönetimi için ortam değişkenlerini kullanın.
+
+Veritabanı Etkileşimi
+- ORM işlemleri için Flask-SQLAlchemy kullanın.
+- Flask-Migrate kullanarak veritabanı geçişlerini uygulayın.
+- SQLAlchemy'nin oturum yönetimini düzgün bir şekilde kullanın ve oturumların kullanımdan sonra kapatıldığından emin olun.
+
+Serileştirme ve Doğrulama
+- Nesne serileştirme/serileştirmeyi kaldırma ve giriş doğrulaması için Marshmallow kullanın.
+- Serileştirmeyi tutarlı bir şekilde işlemek için her model için şema sınıfları oluşturun.
+
+Kimlik Doğrulama ve Yetkilendirme
+- Flask-JWT-Extended kullanarak JWT tabanlı kimlik doğrulamayı uygulayın.
+- Kimlik doğrulaması gerektiren rotaları korumak için dekoratörler kullanın.
+
+Test
+- pytest kullanarak birim testleri yazın.
+- Entegrasyon testi için Flask'ın test istemcisini kullanın.
+- Veritabanı ve uygulama kurulumu için test fikstürlerini uygulayın.
+
+API Belgeleri
+- Swagger/OpenAPI belgeleri için Flask-RESTX veya Flasgger kullanın.
+- Tüm uç noktaların istek/yanıt şemalarıyla düzgün bir şekilde belgelendiğinden emin olun.
+
+Dağıtım
+- WSGI HTTP Sunucusu olarak Gunicorn veya uWSGI kullanın.
+- Üretimde uygun günlük kaydı ve izlemeyi uygulayın.
+- Hassas bilgiler ve yapılandırma için ortam değişkenlerini kullanın.
+
+En iyi uygulamalar için Görünümler, Planlar ve Uzantılar hakkında ayrıntılı bilgi için Flask belgelerine bakın.
+
+Veritabanı yapısı
+CREATE TABLE "Birimler" (
+	"id"	INTEGER,
+	"birim_adi"	TEXT NOT NULL,
+	"aciklama"	TEXT,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE TABLE "Firma" (
+	"id"	INTEGER,
+	"firma_adi"	TEXT NOT NULL,
+	"firma_adresi"	TEXT,
+	"aciklama"	TEXT,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE TABLE "Gelis_Nedeni" (
+	"id"	INTEGER,
+	"neden_adi"	TEXT NOT NULL,
+	"aciklama"	TEXT,
+	"olusturma_tarihi"	TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE TABLE "Isyerleri" (
+	"id"	INTEGER,
+	"isyeri_adi"	TEXT NOT NULL,
+	"isyeri_servisi"	TEXT,
+	"konum"	TEXT,
+	"kullanici_id"	INTEGER,
+	"tarih"	TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE TABLE "Kullanici" (
+	"id"	INTEGER,
+	"kullanici_adi"	TEXT NOT NULL UNIQUE,
+	"sifre"	TEXT NOT NULL,
+	"yetki"	TEXT NOT NULL,
+	"aciklama"	TEXT,
+	"tarih"	TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE TABLE "Malzemeler" (
+	"id"	INTEGER,
+	"stok_kodu"	TEXT NOT NULL UNIQUE,
+	"malzeme_adi"	TEXT NOT NULL,
+	"aciklama"	TEXT,
+	"kullanici_id"	INTEGER,
+	"tarih"	TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE TABLE "Stok" (
+	"stok_kodu"	TEXT,
+	"malzeme_adi"	TEXT NOT NULL,
+	"miktar"	INTEGER NOT NULL,
+	"birim_adi"	TEXT NOT NULL,
+	"minimum_miktar"	INTEGER,
+	"son_miktar"	INTEGER,
+	"son_islem_tarihi"	TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	"son_islem_tipi"	TEXT,
+	"kullanici_id"	INTEGER,
+	PRIMARY KEY("stok_kodu")
+);
+
+CREATE TABLE "Stok_Cikis" (
+	"id"	INTEGER,
+	"stok_kodu"	TEXT NOT NULL,
+	"malzeme_adi"	TEXT NOT NULL,
+	"miktar"	INTEGER NOT NULL,
+	"birim_adi"	TEXT NOT NULL,
+	"isyeri_adi"	TEXT NOT NULL,
+	"teslim_alan"	TEXT,
+	"islem_tarihi"	TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	"aciklama"	TEXT,
+	"kullanici_id"	INTEGER,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE TABLE "Stok_Giris" (
+	"id"	INTEGER,
+	"stok_kodu"	TEXT NOT NULL,
+	"malzeme_adi"	TEXT NOT NULL,
+	"miktar"	INTEGER NOT NULL,
+	"birim_adi"	TEXT NOT NULL,
+	"islem_tarihi"	TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	"gelis_nedeni_id"	TEXT,
+	"firma_isyeri_adi"	TEXT,
+	"aciklama"	TEXT,
+	"kullanici_id"	INTEGER,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);

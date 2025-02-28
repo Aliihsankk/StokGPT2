@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StokGPT - Malzeme Kayıt</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6b46c1;
+            --secondary-color: #805ad5;
+            --background-color: #f3e8ff;
+            --text-color: #2d3748;
+            --card-bg: #ffffff;
+            --danger-color: #dc3545;
+            --warning-color: #ffd43b;
+            --success-color: #2ecc71;
+        }
+        
+        body {
+            background-color: var(--background-color);
+            min-height: 100vh;
+            color: var(--text-color);
+        }
+        
+        .navbar {
+            background-color: var(--card-bg) !important;
+            box-shadow: 0 2px 4px rgba(107, 70, 193, 0.1);
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color) !important;
+        }
+        
+        .main-container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(107, 70, 193, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1rem 1.5rem;
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        .form-label {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid rgba(107, 70, 193, 0.2);
+            padding: 0.6rem 1rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(107, 70, 193, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
+            color: #000;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        .editable-cell {
+            position: relative;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .editable-cell:hover {
+            background-color: rgba(107, 70, 193, 0.1);
+        }
+        
+        .editable-cell:focus {
+            outline: none;
+            background-color: rgba(107, 70, 193, 0.1);
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+        
+        .footer {
+            background: var(--card-bg);
+            padding: 1rem 0;
+            margin-top: 2rem;
+            box-shadow: 0 -4px 6px rgba(107, 70, 193, 0.1);
+        }
+        
+        .stats-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(107, 70, 193, 0.1);
+        }
+        
+        .stats-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .stats-title {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-boxes me-2"></i>STOK TAKİP
+            </a>
+            <a href="/" class="btn btn-outline-primary">
+                <i class="fas fa-home me-2"></i>Ana Sayfa
+            </a>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- İstatistik Kartları -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-boxes-stacked stats-icon"></i>
+                    <div class="stats-title">Toplam Malzeme Sayısı</div>
+                    <div class="stats-value" id="totalItems">0</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-clock stats-icon text-info"></i>
+                    <div class="stats-title">Son Kayıt Tarihi</div>
+                    <div class="stats-value" style="font-size: 1.2rem;" id="lastUpdate">-</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-user stats-icon text-success"></i>
+                    <div class="stats-title">Aktif Kullanıcı</div>
+                    <div class="stats-value" style="font-size: 1.2rem;" id="activeUser">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-box me-2"></i>Malzeme Kayıt
+                </h4>
+            </div>
+            <div class="card-body">
+                <form id="malzemeForm">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="stokKodu" class="form-label">Stok Kodu</label>
+                            <input type="text" class="form-control" id="stokKodu" name="stok_kodu" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="malzemeAdi" class="form-label">Malzeme Adı</label>
+                            <input type="text" class="form-control" id="malzemeAdi" name="malzeme_adi" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="aciklama" class="form-label">Açıklama</label>
+                            <input type="text" class="form-control" id="aciklama" name="aciklama">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="button" class="btn btn-secondary" onclick="formTemizle()">
+                                <i class="fas fa-eraser me-2"></i>Temizle
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Kaydet
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Malzeme Listesi
+                </h4>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light" onclick="kayitlariGetir()">
+                        <i class="fas fa-sync-alt me-2"></i>Yenile
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="malzemeTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Stok Kodu</th>
+                                <th>Malzeme Adı</th>
+                                <th>Açıklama</th>
+                                <th>Kayıt Tarihi</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Veriler JavaScript ile doldurulacak -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container text-center">
+            <p class="text-muted mb-0">© 2024 StokGPT - Tüm hakları saklıdır</p>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        let dataTable;
+        
+        $(document).ready(function() {
+            // İlk yüklemede kayıtları getir
+            kayitlariGetir();
+            
+            // Form gönderimi
+            $('#malzemeForm').on('submit', function(e) {
+                e.preventDefault();
+                var stokKodu = $('#stokKodu').val().trim();
+                var malzemeAdi = $('#malzemeAdi').val().trim();
+                var aciklama = $('#aciklama').val().trim();
+                
+                if (!stokKodu || !malzemeAdi) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Hata!',
+                        text: 'Stok kodu ve malzeme adı zorunludur!'
+                    });
+                    return;
+                }
+
+                $.post('/malzeme_ekle', {
+                    stok_kodu: stokKodu,
+                    malzeme_adi: malzemeAdi,
+                    aciklama: aciklama
+                }, function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Başarılı!',
+                            text: 'Malzeme başarıyla kaydedildi.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            formTemizle();
+                            kayitlariGetir();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hata!',
+                            text: response.message || 'Bir hata oluştu!'
+                        });
+                    }
+                });
+            });
+        });
+
+        function kayitlariGetir() {
+            $.get('/malzemeler_listele', function(response) {
+                if (response.success) {
+                    if (dataTable) {
+                        dataTable.destroy();
+                    }
+
+                    var tbody = $('table tbody');
+                    tbody.empty();
+                    
+                    response.malzemeler.forEach(function(malzeme) {
+                        var row = `
+                            <tr data-id="${malzeme.id}">
+                                <td>${malzeme.id}</td>
+                                <td>${malzeme.stok_kodu}</td>
+                                <td>${malzeme.malzeme_adi}</td>
+                                <td>${malzeme.aciklama || ''}</td>
+                                <td>${malzeme.tarih || '-'}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" onclick="malzemeDuzenle(this)">
+                                        <i class="fas fa-edit me-1"></i>Düzenle
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="malzemeSil(this)">
+                                        <i class="fas fa-trash me-1"></i>Sil
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.append(row);
+                    });
+
+                    // İstatistikleri güncelle
+                    $('#totalItems').text(response.malzemeler.length);
+                    $('#lastUpdate').text(response.malzemeler.length > 0 ? 
+                        response.malzemeler[response.malzemeler.length - 1].tarih : '-');
+                    $('#activeUser').text(response.aktif_kullanici || '-');
+
+                    // DataTable'ı başlat
+                    dataTable = $('#malzemeTable').DataTable({
+                        language: {
+                            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json'
+                        },
+                        order: [[0, 'desc']],
+                        pageLength: 25,
+                        dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip'
+                    });
+
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Hata!',
+                        text: response.message || 'Veriler yüklenirken bir hata oluştu!'
+                    });
+                }
+            });
+        }
+
+        function malzemeDuzenle(btn) {
+            var row = $(btn).closest('tr');
+            var id = row.data('id');
+            var stokKodu = row.find('td:eq(1)').text();
+            var malzemeAdi = row.find('td:eq(2)').text();
+            var aciklama = row.find('td:eq(3)').text();
+
+            Swal.fire({
+                title: 'Malzeme Düzenle',
+                html: `
+                    <div class="mb-3">
+                        <label class="form-label">Stok Kodu</label>
+                        <input type="text" class="form-control" id="editStokKodu" value="${stokKodu}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Malzeme Adı</label>
+                        <input type="text" class="form-control" id="editMalzemeAdi" value="${malzemeAdi}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Açıklama</label>
+                        <input type="text" class="form-control" id="editAciklama" value="${aciklama}">
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Kaydet',
+                cancelButtonText: 'İptal',
+                preConfirm: () => {
+                    return {
+                        stok_kodu: $('#editStokKodu').val().trim(),
+                        malzeme_adi: $('#editMalzemeAdi').val().trim(),
+                        aciklama: $('#editAciklama').val().trim()
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const data = result.value;
+                    if (!data.stok_kodu || !data.malzeme_adi) {
+                        Swal.fire('Hata', 'Stok kodu ve malzeme adı zorunludur!', 'error');
+                        return;
+                    }
+
+                    $.post('/malzeme_duzenle/' + id, data, function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Başarılı!',
+                                text: 'Malzeme güncellendi.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            kayitlariGetir();
+                        } else {
+                            Swal.fire('Hata', response.message || 'Güncelleme başarısız!', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function malzemeSil(btn) {
+            var row = $(btn).closest('tr');
+            var id = row.data('id');
+
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu malzeme kaydını silmek istediğinizden emin misiniz?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, sil!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/malzeme_sil/' + id, function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Başarılı!',
+                                text: 'Malzeme başarıyla silindi.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            kayitlariGetir();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Hata!',
+                                text: response.message || 'Silme işlemi başarısız!'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        function formTemizle() {
+            $('#malzemeForm')[0].reset();
+        }
+    </script>
+</body>
+</html> 

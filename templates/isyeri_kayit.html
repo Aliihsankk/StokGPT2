@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STOK TAKİP UYGULAMASI - İşyeri Kayıt</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6b46c1;
+            --secondary-color: #805ad5;
+            --background-color: #f3e8ff;
+            --text-color: #2d3748;
+            --card-bg: #ffffff;
+            --danger-color: #dc3545;
+            --warning-color: #ffd43b;
+            --success-color: #2ecc71;
+        }
+        
+        body {
+            background-color: var(--background-color);
+            min-height: 100vh;
+            color: var(--text-color);
+        }
+        
+        .navbar {
+            background-color: var(--card-bg) !important;
+            box-shadow: 0 2px 4px rgba(107, 70, 193, 0.1);
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color) !important;
+        }
+        
+        .main-container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(107, 70, 193, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1rem 1.5rem;
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        .form-label {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid rgba(107, 70, 193, 0.2);
+            padding: 0.6rem 1rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(107, 70, 193, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
+            color: #000;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        .editable-cell {
+            position: relative;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .editable-cell:hover {
+            background-color: rgba(107, 70, 193, 0.1);
+        }
+        
+        .editable-cell:focus {
+            outline: none;
+            background-color: rgba(107, 70, 193, 0.1);
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+        
+        .footer {
+            background: var(--card-bg);
+            padding: 1rem 0;
+            margin-top: 2rem;
+            box-shadow: 0 -4px 6px rgba(107, 70, 193, 0.1);
+        }
+        
+        .stats-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(107, 70, 193, 0.1);
+        }
+        
+        .stats-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .stats-title {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        
+        .table thead th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            border: none;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(107, 70, 193, 0.05);
+            transform: translateX(5px);
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(107, 70, 193, 0.1);
+        }
+
+        .btn {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .stats-card {
+            transition: all 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-boxes me-2"></i>STOK TAKİP
+            </a>
+            <a href="/" class="btn btn-outline-primary">
+                <i class="fas fa-home me-2"></i>Ana Sayfa
+            </a>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- İstatistik Kartları -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-building stats-icon"></i>
+                    <div class="stats-title">Toplam İşyeri Sayısı</div>
+                    <div class="stats-value" id="totalWorkplaces">0</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-map-marker-alt stats-icon text-success"></i>
+                    <div class="stats-title">Farklı Lokasyon Sayısı</div>
+                    <div class="stats-value" id="totalLocations">0</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-clock stats-icon text-info"></i>
+                    <div class="stats-title">Son Güncelleme</div>
+                    <div class="stats-value" style="font-size: 1.2rem;" id="lastUpdate">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-building me-2"></i>İşyeri Kayıt
+                </h4>
+            </div>
+            <div class="card-body">
+                <form id="isyeriForm">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="isyeriAdi" class="form-label">İşyeri Adı</label>
+                            <input type="text" class="form-control" id="isyeriAdi" name="isyeri_adi" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="isyeriServisi" class="form-label">İşyeri Servisi</label>
+                            <input type="text" class="form-control" id="isyeriServisi" name="isyeri_servisi">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="konum" class="form-label">Konum</label>
+                            <input type="text" class="form-control" id="konum" name="konum">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary" id="kaydetBtn">
+                                <i class="fas fa-save me-2"></i>Kaydet
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-list me-2"></i>İşyeri Listesi
+                </h4>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light" onclick="kayitlariGetir()">
+                        <i class="fas fa-sync-alt me-2"></i>Yenile
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="isyeriTable">
+                        <thead>
+                            <tr>
+                                <th width="5%">ID</th>
+                                <th width="30%">İşyeri Adı</th>
+                                <th width="25%">İşyeri Servisi</th>
+                                <th width="20%">Konum</th>
+                                <th width="10%">Kayıt Tarihi</th>
+                                <th width="10%">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Veriler JavaScript ile doldurulacak -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grafik Kartı 
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>İşyeri İstatistikleri
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <canvas id="locationChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+-->
+    <footer class="footer">
+        <div class="container text-center">
+            <p class="text-muted mb-0">© 2024 STOK TAKİP UYGULAMASI - Tüm hakları saklıdır</p>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        let dataTable;
+        let editMode = false;
+        let editId = null;
+        let locationChart;
+        let trendChart;
+        
+        $(document).ready(function() {
+            // İlk yüklemede kayıtları getir
+            kayitlariGetir();
+            
+            // Form gönderimi
+            $('#isyeriForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = {
+                    isyeri_adi: $('#isyeriAdi').val().trim(),
+                    isyeri_servisi: $('#isyeriServisi').val().trim(),
+                    konum: $('#konum').val().trim()
+                };
+                
+                if (!formData.isyeri_adi) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Hata!',
+                        text: 'İşyeri adı boş olamaz!'
+                    });
+                    return;
+                }
+
+                var endpoint = editMode ? '/isyeri_duzenle/' + editId : '/isyeri_kayit';
+
+                $.post(endpoint, formData, function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Başarılı!',
+                            text: editMode ? 'İşyeri başarıyla güncellendi.' : 'İşyeri başarıyla kaydedildi.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            formTemizle();
+                            kayitlariGetir();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hata!',
+                            text: response.message || 'Bir hata oluştu!'
+                        });
+                    }
+                });
+            });
+        });
+
+        function kayitlariGetir() {
+            $.get('/isyerleri_listele', function(response) {
+                if (response.success) {
+                    if (dataTable) {
+                        dataTable.destroy();
+                    }
+
+                    var tbody = $('#isyeriTable tbody');
+                    tbody.empty();
+                    
+                    let uniqueLocations = new Set();
+                    let locationData = {};
+                    
+                    response.isyerleri.forEach(function(isyeri) {
+                        if (isyeri.konum) {
+                            uniqueLocations.add(isyeri.konum);
+                            locationData[isyeri.konum] = (locationData[isyeri.konum] || 0) + 1;
+                        }
+                        
+                        var row = `
+                            <tr data-id="${isyeri.id}">
+                                <td>${isyeri.id}</td>
+                                <td class="editable-cell" contenteditable="true">${isyeri.isyeri_adi || ''}</td>
+                                <td class="editable-cell" contenteditable="true">${isyeri.isyeri_servisi || ''}</td>
+                                <td class="editable-cell" contenteditable="true">${isyeri.konum || ''}</td>
+                                <td>${isyeri.tarih || ''}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" onclick="isyeriDuzenle(this)">
+                                        <i class="fas fa-edit me-1"></i>Düzenle
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="isyeriSil(this)">
+                                        <i class="fas fa-trash me-1"></i>Sil
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.append(row);
+                    });
+
+                    // İstatistikleri güncelle
+                    $('#totalWorkplaces').text(response.isyerleri.length);
+                    $('#totalLocations').text(uniqueLocations.size);
+                    $('#lastUpdate').text(new Date().toLocaleTimeString());
+
+                    // Grafikleri güncelle
+                    updateCharts(locationData, response.isyerleri);
+
+                    // DataTable'ı başlat
+                    dataTable = $('#isyeriTable').DataTable({
+                        language: {
+                            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json'
+                        },
+                        order: [[1, 'asc']],
+                        pageLength: 25,
+                        dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip'
+                    });
+
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Hata!',
+                        text: response.message || 'Veriler yüklenirken bir hata oluştu!'
+                    });
+                }
+            });
+        }
+
+        function updateCharts(locationData, isyerleri) {
+            // Konum dağılımı grafiği
+            const locationCtx = document.getElementById('locationChart').getContext('2d');
+            if (locationChart) {
+                locationChart.destroy();
+            }
+            locationChart = new Chart(locationCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(locationData),
+                    datasets: [{
+                        data: Object.values(locationData),
+                        backgroundColor: [
+                            '#4C51BF',
+                            '#6B46C1',
+                            '#805AD5',
+                            '#9F7AEA',
+                            '#B794F4'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Konum Dağılımı',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Trend grafiği
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            if (trendChart) {
+                trendChart.destroy();
+            }
+            
+            // Son 6 ayın verilerini hazırla
+            const months = [];
+            const counts = [];
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                months.push(date.toLocaleString('tr-TR', { month: 'short' }));
+                counts.push(Math.floor(Math.random() * 10) + 1); // Örnek veri
+            }
+
+            trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'İşyeri Sayısı',
+                        data: counts,
+                        borderColor: '#6B46C1',
+                        backgroundColor: 'rgba(107, 70, 193, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Aylık İşyeri Trendi',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function isyeriDuzenle(btn) {
+            var row = $(btn).closest('tr');
+            editId = row.data('id');
+            editMode = true;
+            
+            $('#isyeriAdi').val(row.find('td:eq(1)').text().trim());
+            $('#isyeriServisi').val(row.find('td:eq(2)').text().trim());
+            $('#konum').val(row.find('td:eq(3)').text().trim());
+            
+            $('#kaydetBtn').html('<i class="fas fa-save me-2"></i>Güncelle');
+        }
+
+        function formTemizle() {
+            $('#isyeriForm')[0].reset();
+            editMode = false;
+            editId = null;
+            $('#kaydetBtn').html('<i class="fas fa-save me-2"></i>Kaydet');
+        }
+
+        function isyeriSil(btn) {
+            var row = $(btn).closest('tr');
+            var id = row.data('id');
+
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu işyeri kaydını silmek istediğinizden emin misiniz?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, sil!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/isyeri_sil/' + id, function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Başarılı!',
+                                text: 'İşyeri başarıyla silindi.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            kayitlariGetir();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Hata!',
+                                text: response.message || 'Silme işlemi başarısız!'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
